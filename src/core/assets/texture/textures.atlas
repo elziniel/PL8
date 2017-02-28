@@ -1,0 +1,82 @@
+
+textures.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+entry
+  rotate: false
+  xy: 1, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+exit
+  rotate: false
+  xy: 131, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+floor
+  rotate: false
+  xy: 261, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+turret_blue
+  rotate: false
+  xy: 391, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+turret_red
+  rotate: false
+  xy: 521, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+turret_yellow
+  rotate: false
+  xy: 651, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+wall
+  rotate: false
+  xy: 781, 85
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+enemy_blue
+  rotate: false
+  xy: 1, 19
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+enemy_red
+  rotate: false
+  xy: 911, 149
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+enemy_yellow
+  rotate: false
+  xy: 67, 19
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+bullet_test
+  rotate: false
+  xy: 1, 1
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1

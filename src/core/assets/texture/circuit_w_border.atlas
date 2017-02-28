@@ -1,0 +1,82 @@
+
+circuit_w_border.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+exit
+  rotate: false
+  xy: 1, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+floor
+  rotate: false
+  xy: 35, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+entry
+  rotate: false
+  xy: 69, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+turret_blue
+  rotate: false
+  xy: 103, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+turret_red
+  rotate: false
+  xy: 137, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+turret_yellow
+  rotate: false
+  xy: 171, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+wall
+  rotate: false
+  xy: 205, 25
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+enemy_blue
+  rotate: false
+  xy: 239, 41
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+enemy_red
+  rotate: false
+  xy: 239, 23
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+enemy_yellow
+  rotate: false
+  xy: 1, 7
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+bullet_test
+  rotate: false
+  xy: 1, 1
+  size: 4, 4
+  orig: 4, 4
+  offset: 0, 0
+  index: -1

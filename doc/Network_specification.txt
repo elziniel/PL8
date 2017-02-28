@@ -1,0 +1,223 @@
+---- RESEAU: SPECIFICATION ----
+
+
+
+
+## CLIENT - SERVER
+
+Deux composantes :
+  - un serveur
+  - plusieurs clients
+
+Le serveur contôle entièrement le jeu.
+Les clients se contentent d'envoyer les inputs des utilisateurs au serveur.
+À intervalle de temps régulier, le serveur envoie l'état du jeu à tous les clients.
+Chaque client met son état du jeu à jour avec ce message.
+
+
+
+
+## CONTENU PAQUETS
+
+[ Distinction ]
+Client A : client du poseur de tourelles
+Client B : client des joueurs ennemis
+
+
+[ client B -> serveur ]
+Paquet 1 : inputs
+Envoyé lorsque le joueur est en phase de jeu
+  - list d'inputs à l'intant t. Par exemple 4 bits pour les 4 directions de
+    déplacement.
+
+Paquet 2 : améliorations du joueur
+Envoyé lorsque le joueur est en phase d'amélioration
+Six bits où chaque bit correspond à une amélioration. Si le bit est à 1, c'est
+que le joueur souhaite acheter cette amélioration.
+  Suppression d'une couleur (seulement 1 sur 3)
+  - red
+  - green
+  - blue
+  Vitesse augmentée
+  - velocity
+  Résistance augmentée
+  - health
+  Argent pour le prochain évènement
+  - somme
+
+
+[ client A -> serveur ]
+Les inputs, ici, correspondent au demande d'amélioration de tourelle, la création
+de nouvelles tourelles, l'achat de bonus
+  - achat de bonus
+  - positionnement de nouvelles tourelles
+  - amélioration d'une tourelle
+
+
+[ serveur -> client A/B ]
+Paquet 1 : état du jeu
+Spécifie les données relatives au terrain
+Le terrain de jeu étant un damier n.m, il suffit par exemple d'encoder chaque
+case sur k bits (hexadecimal). On envoi d'abord les dimensions, puis k.n.m bits
+pour les cases. Les informations de chaque case devront comprendre :
+  - Start Data
+  - Exit Data
+  - Turret Data
+    - Turret_id
+    - is red
+    - is green
+    - is blue
+    - type
+    - level
+
+Mise à jour des informations des ennemis
+  - Enemy Data
+    - Player_id
+    - state : vivant, mort
+    - position X
+    - position Y
+    - velocity X
+    - velocity Y
+    - is red
+    - is green
+    - is blue
+    - health
+
+Données sur les évènements
+  - somme d'argent pour le prochain évènement
+  - évènement en cours ?
+  - id évènement
+  - données sur l'évènement
+
+Données personnelles du joueur (ces informations sont uniques pour chaque client)
+  - point de vie du joueur (client A/B)
+  - somme d'argent du joueur (client A/B)
+  - temps d'attente en phase d'amélioration (client B)
+  - nombre de jeton de bonus (client A)
+  - bonus débloqués (client A)
+
+
+
+Il faut que chaque client ait un état de jeu le plus proche possible de l'état
+de jeu actuel du serveur. Evidement, il y aura un décalage dû à la latence entre
+le client et le serveur, mais il est important que la méthode employée n'augmente
+pas cette latence.
+
+On partirai sur du TCP avec l'option no_delay activée afin de limité la latence
+au maximum. Les idées déveleppées par la suite restent des idées d'optimisations
+réalisables une fois le projet stable en TCP.
+
+Pour cela, nous nous sommes documentés sur le sujet. Le lien suivant donne des
+pistes de réflexions et d'idées pour implémenter une composante réseau qui se
+prete bien à notre projet.
+Nous avons résumé les points clés avec nos mots.
+
+Source :
+http://gafferongames.com/networking-for-game-programmers/
+
+
+
+
+## PROTOCOLE
+
+
+UDP serait plus adapté contrairement au TCP.
+On souhaite envoyer à intervalle de temps régulier l'état du jeu à tous les clients.
+Il est important qu'un paquet arrive le plus vite possible à chaque client, afin
+de créer le moins de latence possible entre l'état de jeu du serveur et ceux des
+clients.
+
+Le problème causé avec TCP est qu'il bufferise les paquets envoyés. Au lieu d'envoyer
+directement chaque paquet, il attend d'avoir rempli un buffer pour tous les envoyer
+d'un coup. Ce qui ne nous intéresse pas ici, car les clients vont recevoir plusieurs
+états du jeu en même temps, mais seul le plus récent nous intéresse réellement.
+Le jeu va être saccadé et cela va causer de la latence.
+De plus, si un paquet est perdu, TCP met en pause le stream et attend de recevoir
+à nouveau le paquet perdu. Dans un jeu en temps réel, il est important de connaître
+les états/inputs du jeu qui sont les plus récents. On ne veut pas que le jeu se
+mette en pause pour attendre un état du serveur qui a été perdu et qui en plus
+ne sera pas utilisé car il existera un état plus récent.
+
+
+
+
+## CLIENT-SIDE PREDICTION
+
+Entre l'attente de deux messages du serveur, les clients ne doivent pas se mettre
+en pause et créer une latence. Il doivent prédire l'état suivant du jeu en
+fonction de l'état actuel (ex: vecteur de déplacement des ennemis et des balles,
+inputs du joueur). Le serveur reste prioritaire sur le client concernant les
+modifications de l'état du jeu.
+
+Problème : s'il y a par exemple 200ms de latence entre serveur et client. Le client
+va recevoir l'état du jeu venant du serveur qui correspond à l'état 200ms dans le
+passé par rapport au prédiction du client. Si le client applique bêtement cette état,
+alors cela reviendrait à revenir 200ms en arrière et annuler complètement les
+prédictions du client.
+
+Solution : créer un buffer des états passés du jeu et des inputs du joueurs.
+Quand le client reçoit un nouvel état du serveur, il supprime tous les états
+du buffer qui se passe avant le temps de l'état reçu. Puis rejoue le jeu avec les
+inputs sauvegardés du joueur basé sur l'état reçu.
+
+
+
+
+## IDEE IMPLEMENTATION
+
+[ Connexion virtuelle sur UDP ]
+L'idée est de 'copier' TCP en créant un filtre qui assure qu'un serveur A et un
+client B ne discute qu'entre eux et n'accepte pas les paquets venant d'autres
+sources, par exemple en ajoutant un 'protocol_id' en entête des paquets.
+Le serveur peut discuter avec plusieurs clients, donc il y aura autant de connexions
+virtuelles que de clients avec un 'protocol_id' unique pour chaque connexion.
+Si A ne reçoit plus de paquet de B ou inversement pendant un temps fixé, alors
+il y a déconnexion.
+
+
+[ Sequence number ]
+Pour savoir l'ordre des paquets, on peut ajouter à l'entête un 'packet_id' comme
+l'UDP ne garantit pas l'ordre d'arrivée des paquets. Il sera utile pour connaitre
+quel est le paquet le plus récent.
+
+
+[ Acknowledge ]
+Pour savoir si le destinataire reçoit bien les paquets, il envoie à la source,
+des paquets avec un 'ack_id' pour chaque paquet qu'il reçoit. 'ack_id' correspond
+à l'id du paquet qu'il a reçu. Pour éviter la perte des paquets ack, en plus de
+'ack_id', on rajoute une valeur de 32 bits. Un bit k de cette valeur correspond
+à un ancien 'ack_id' calculé par (ack_id - k). Un paquet ack contient donc 33 acks
+au lieu de 1. La source va recevoir donc 33 ack pour un même id sur 33 paquets ack
+différent.
+
+
+[ Congestion avoidance ]
+Pour éviter de saturer le réseau, on peut calculer pour chaque paquet envoyé, le
+temps d'aller-retour (quand on reçoit le ack du paquet) noté t.
+On peut donc ajuster le nombre de paquets envoyés par seconde en fonction du temps
+t en créant deux vitesses: "good" et "bad".
+Pour switcher entre good et bad, on suit l'algorithme suivant :
+  - on est en good mode, t dépasse un seuil, le réseau est surchargé, on passe en
+    bad mode.
+  - on est en bad mode, si t s'abaisse et reste bas pendant un certain temps, alors
+    on repasse en good mode.
+  - pour éviter d'alterner rapidement entre good et bad mode, si on tombe de good
+    à bad rapidement, alors on double le temps requis pour re switcher de bad à good.
+  - pour éviter aux bonnes connexions qui ont des courtes périodes de bad mode
+    de switch trop longtemps, plus longtemps on reste en good mode, plus court
+    sera le temps minimum à rester en bad mode.
+
+
+## ENTETE
+
+Pour un paquet d'information
+[protocole id]
+[packet id]
+contenu
+
+
+Pour un paquet d'acknowledge
+[protocole id]
+[packet id]
+[ack id]
+[ack 32bits]

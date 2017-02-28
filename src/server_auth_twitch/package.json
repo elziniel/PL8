@@ -1,0 +1,12 @@
+{
+  "name": "auth_server_td",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Authentification server with Twitch API",
+  "author": "foo",
+  "dependencies":{
+    "express": "4.13.4",
+    "net": "1.0.2",
+    "twitch-api": "0.4.3"
+  }
+}

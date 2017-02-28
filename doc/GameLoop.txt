@@ -1,0 +1,43 @@
+---- GAME LOOP ----
+
+En prenant l'exemple du framework libGDX, le cycle de vie d'une application
+est décrite ici :
+https://github.com/libgdx/libgdx/wiki/The-life-cycle
+
+Chaque frame de notre application se déroulera donc dans la fonction "render".
+Deux étapes :
+  - En premier, mettre à jour l'état du jeu
+  - Puis, afficher l'état du jeu sur l'écran
+
+Pour l'étape de mise à jour de l'état du jeu, il faut calculer :
+  - l'état vie/mort du joueur de tourelle
+  - l'état vie/mort des unités ennemies
+  - le positionnement des unités ennemies
+  - la cible des tourelles
+  - si une unité ennemie est sur une case d'arrivé
+  - le tire d'un projectile pour les tourelles
+  - si les projectiles des tourelles ont atteint leur cible
+  - le positionnement des projectiles des tourelles
+  - l'argent des différents joueurs
+  - le score du joueur de tourelle
+
+Pour l'étape d'affichage, il faut redessiner :
+  - le terrain de jeu
+  - les tourelles
+  - les unités ennemies
+  - les projectiles des tourelles
+  - mettre à jour l'UI
+Le serveur n'a pas besoin de réaliser l'étape d'affichage.
+
+Les inputs des clients concernant l'état du jeu iront modifier :
+  - les vecteurs de déplacements et d'accélération des unités ennemies
+  - l'ajout de tourelle
+  - l'amélioration de tourelle
+Chacun de ces inputs requièrent une vérification du serveur pour savoir s'ils sont
+réalisable :
+  - détection des collisions pour le déplacement
+  - case libre et case qui ne bloque pas la progression des unités ennemies pour
+  l'ajout de tourelle
+  - amélioration existante et le joueur possède la quantité d'argent suffisante
+Ces vérifications seront faites côté client aussi afin de prédire le prochain état
+du jeu en attendant le prochain envoyé par le serveur.
